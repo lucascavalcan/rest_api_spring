@@ -19,8 +19,8 @@ public class LocalConfig {
 
     @PostConstruct
     public void startDB() {
-        User u1 = new User(null, "Fulano", "fulano4@gmail.com", "123");
-        User u2 = new User(null, "Ciclano", "ciclano4@gmail.com", "123");
+        User u1 = new User(null, "Fulano", "fulano7@gmail.com", "123");
+        User u2 = new User(null, "Ciclano", "ciclano8@gmail.com", "123");
 
         repository.saveAll(List.of(u1, u2));
     }
