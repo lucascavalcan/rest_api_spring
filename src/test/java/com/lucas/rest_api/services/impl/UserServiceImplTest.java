@@ -18,7 +18,7 @@ import java.util.Optional;
 import static net.bytebuddy.matcher.ElementMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class UserServiceImplTest {
@@ -27,6 +27,7 @@ class UserServiceImplTest {
     public static final Integer ID = 1;
     public static final String EMAIL = "lucas@gmail.com";
     public static final String PASSWORD = "123";
+    public static final String OBJECT_NOT_FOUND = "Object not found!";
 
     @InjectMocks
     private UserServiceImpl service;
@@ -62,13 +63,13 @@ class UserServiceImplTest {
 
     @Test
     void whenFindByIdThenReturnAnObjectNotFoundException() {
-        when(repository.findById(anyInt())).thenThrow(new ObjectNotFoundException("Object not found!"));
+        when(repository.findById(anyInt())).thenThrow(new ObjectNotFoundException(OBJECT_NOT_FOUND));
 
         try{
             service.findById(ID);
         } catch (Exception ex) {
             assertEquals(ObjectNotFoundException.class, ex.getClass());
-            assertEquals("Object not found!", ex.getMessage());
+            assertEquals(OBJECT_NOT_FOUND, ex.getMessage());
         }
     }
 
@@ -145,7 +146,23 @@ class UserServiceImplTest {
     }
 
     @Test
-    void delete() {
+    void deleteWithSuccess() {
+        when(repository.findById(ArgumentMatchers.anyInt())).thenReturn(optionalUser);
+        doNothing().when(repository).deleteById(anyInt());
+        service.delete(ID);
+        verify(repository, times(1)).deleteById(ID);
+    }
+
+    @Test
+    void deleteWithObjectNotFoundException() {
+        when (repository.findById(anyInt()))
+                .thenThrow(new ObjectNotFoundException(OBJECT_NOT_FOUND));
+        try {
+            service.delete(ID);
+        } catch (Exception ex) {
+            assertEquals(ObjectNotFoundException.class, ex.getClass());
+            assertEquals(OBJECT_NOT_FOUND, ex.getMessage());
+        }
     }
 
     //inicializar os dados
