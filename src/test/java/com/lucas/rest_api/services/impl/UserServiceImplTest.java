@@ -117,7 +117,31 @@ class UserServiceImplTest {
     }
 
     @Test
-    void update() {
+    void whenUpdateThenReturnSuccess() {
+        when(repository.save(ArgumentMatchers.any())).thenReturn(user);
+
+        User response = service.update(userDTO);
+
+        assertNotNull(response);
+        assertEquals(User.class, response.getClass());
+        assertEquals(ID, response.getId());
+        assertEquals(NAME, response.getName());
+        assertEquals(EMAIL, response.getEmail());
+        assertEquals(PASSWORD, response.getPassword());
+
+    }
+
+    @Test
+    void whenUpdateThenReturnAnDataIntegrityViolationException() {
+        when(repository.findByEmail(ArgumentMatchers.anyString())).thenReturn(optionalUser);
+
+        UserDTO userDTO = new UserDTO(2, NAME, EMAIL, PASSWORD); // mesmo email e outro ID (usuario diferente)
+
+        Exception exception = assertThrows(DataIntegrityViolationException.class, () -> {
+            service.update(userDTO);
+        });
+
+        assertEquals("E-mail already exists", exception.getMessage());
     }
 
     @Test
