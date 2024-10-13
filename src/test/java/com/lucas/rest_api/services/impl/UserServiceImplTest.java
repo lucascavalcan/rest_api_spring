@@ -3,20 +3,19 @@ package com.lucas.rest_api.services.impl;
 import com.lucas.rest_api.domain.User;
 import com.lucas.rest_api.domain.dto.UserDTO;
 import com.lucas.rest_api.repositories.UserRepository;
+import com.lucas.rest_api.services.exceptions.DataIntegrityViolationException;
 import com.lucas.rest_api.services.exceptions.ObjectNotFoundException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 import java.util.Optional;
 
+import static net.bytebuddy.matcher.ElementMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
@@ -90,7 +89,31 @@ class UserServiceImplTest {
     }
 
     @Test
-    void create() {
+    void whenCreateThenReturnSuccess() {
+        when(repository.save(ArgumentMatchers.any())).thenReturn(user);
+
+        User response = service.create(userDTO);
+
+        assertNotNull(response);
+        assertEquals(User.class, response.getClass());
+        assertEquals(ID, response.getId());
+        assertEquals(NAME, response.getName());
+        assertEquals(EMAIL, response.getEmail());
+        assertEquals(PASSWORD, response.getPassword());
+
+    }
+
+    @Test
+    void whenCreateThenReturnAnDataIntegrityViolationException() {
+        when(repository.findByEmail(ArgumentMatchers.anyString())).thenReturn(optionalUser);
+
+        userDTO = new UserDTO(null, "New User", EMAIL, "123");
+
+        Exception exception = assertThrows(DataIntegrityViolationException.class, () -> {
+            service.create(userDTO);
+        });
+
+        assertEquals("E-mail already exists", exception.getMessage());
     }
 
     @Test
